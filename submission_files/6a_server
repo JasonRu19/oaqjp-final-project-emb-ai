@@ -1,0 +1,27 @@
+from flask import Flask, render_template, request
+from EmotionDetection.emotion_detection import emotion_detector
+
+app = Flask("Emotion Detection")
+
+@app.route("/emotionDetector")
+def detector():
+    text_to_analyze = request.args.get('textToAnalyze')
+    response = emotion_detector(text_to_analyze)
+    items = list(response.items())
+    if len(items) == 1:
+        formatted = f"'{items[0][0]}': {float(items[0][1])}"
+    else:
+        formatted = ", ".join(
+            f"'{key}': {float(value)}" for key, value in items[:-1]
+        )
+        key, value = items[-1]
+        formatted += f", and '{key}': {float(value)}"
+    max_key = max(response, key=response.get)
+    return f"For the given statement, the system response is {formatted}. The dominant emotion is <strong>{max_key}</strong>."
+
+@app.route("/")
+def render_index_page():
+    return render_template('index.html')
+
+if __name__ == "__main__":
+      app.run(host="0.0.0.0", port=5000)
